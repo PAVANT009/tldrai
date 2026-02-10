@@ -12,11 +12,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SidebarProvider>
-          <div className="flex flex-col h-screen w-full">
+          <div className="flex min-h-svh w-full flex-col">
             <Navbar />
             <div className="flex flex-1 overflow-hidden">
               <AppSidebar />
-              <main className="flex-1 p-4 overflow-auto">
+              <main className="flex-1 overflow-auto p-4">
                 {children}
               </main>
             </div>
