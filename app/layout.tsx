@@ -1,7 +1,8 @@
 import "./globals.css"
 import { AppSidebar } from "@/components/app-sidebar"
+import { ThemeProvider } from "@/components/theme-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
-import { Navbar } from "@/modules/dashboard/ui/navbar"
+import { PageNavbar } from "@/modules/dashboard/ui/components/navbar"
 
 export default function RootLayout({
   children,
@@ -10,18 +11,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="bg-sidebar">
+        {/* //TODO add a tooltip provider here  */}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
         <SidebarProvider>
           <div className="flex min-h-svh w-full flex-col">
-            <Navbar />
+            <PageNavbar />
             <div className="flex flex-1 overflow-hidden">
               <AppSidebar />
-              <main className="flex-1 overflow-auto p-4">
+              <main className="flex-1 overflow-auto bg-background rounded-l-2xl">
                 {children}
               </main>
             </div>
           </div>
         </SidebarProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
