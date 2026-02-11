@@ -2,7 +2,7 @@ import "./globals.css"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
-import { PageNavbar } from "@/modules/dashboard/ui/navbar"
+import { PageNavbar } from "@/modules/dashboard/ui/components/navbar"
 
 export default function RootLayout({
   children,
