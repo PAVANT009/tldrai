@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Bolt, ChevronDown, Plus, Search, User2 } from "lucide-react"
+import { Bolt, ChevronDown, Home, Plus, Search, User2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { ModeToggle } from "./toggle-btn"
 import MenuSVG from "@/components/MenuSVG"
@@ -74,7 +74,7 @@ return (
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton className="text-sidebar-foreground"><Search/> Home</SidebarMenuButton>
+              <SidebarMenuButton className="text-sidebar-foreground"><Home/> Home</SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton className="text-sidebar-foreground"><MenuSVG/> Categories</SidebarMenuButton>
