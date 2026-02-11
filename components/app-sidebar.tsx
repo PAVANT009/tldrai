@@ -14,6 +14,8 @@ import {
 import { Bolt, ChevronDown, Plus, Search, User2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { ModeToggle } from "./toggle-btn"
+import MenuSVG from "@/components/MenuSVG"
+
 
 // export function AppSidebar() {
 //   return (
@@ -59,7 +61,7 @@ export function AppSidebar() {
   ]
 return (
   <Sidebar className=" dark:border-none">
-    <SidebarContent className="ml-3">
+    <SidebarContent className="ml-1.5">
       <SidebarGroup>
         <div className="h-10 w-[70%]  my-2.5 flex items-center justify-center bg-primary gap-2 px-2 py-1 rounded-lg">
           <button className="flex items-center gap-2 text-sm font-medium ">
@@ -74,7 +76,9 @@ return (
             <SidebarMenuItem>
               <SidebarMenuButton className="text-sidebar-foreground"><Search/> Home</SidebarMenuButton>
             </SidebarMenuItem>
-
+            <SidebarMenuItem>
+              <SidebarMenuButton className="text-sidebar-foreground"><MenuSVG/> Categories</SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton className="text-sidebar-foreground"><Bolt/> Settings</SidebarMenuButton>
             </SidebarMenuItem>
@@ -89,11 +93,11 @@ return (
           <SidebarMenu>
             {recentChats.map((chat,i) => (
               <SidebarMenuItem key={chat.id}>
-                { i !== 0 ? <SidebarMenuButton className="bg-sidebar-accent">{chat.title}</SidebarMenuButton> :
-                <div className="flex">
-                  <div className="w-2 bg-primary rounded-md"></div>
-                  <SidebarMenuButton>{chat.title}</SidebarMenuButton>
-                </div>
+                { i !== 0 ? <SidebarMenuButton className="bg-sidebar-accent/20">{chat.title}</SidebarMenuButton> :
+                  <SidebarMenuButton className="bg-sidebar-accent/90">
+                  <div className="w-2 h-6 bg-primary rounded-sm"></div>
+                    {chat.title}
+                  </SidebarMenuButton>
                 }
               </SidebarMenuItem>
             ))}

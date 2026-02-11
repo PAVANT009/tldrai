@@ -12,11 +12,11 @@ export default function DashboardNavbar() {
           </div>
         </div>
         <div className='flex gap-2.5 '>
-          <span className='p-1 h-fit bg-accent/80 text-accent-foreground/70 rounded-md'>
-            <Star/>
+          <span className='p-1 h-fit bg-accent/50 text-accent-foreground/70 rounded-md'>
+            <Star size={18}/>
           </span>
-          <span className='p-1 h-fit bg-accent/80 text-accent-foreground/70 rounded-md'>
-            <Ellipsis/>
+          <span className='p-1 h-fit bg-accent/50 text-accent-foreground/70 rounded-md'>
+            <Ellipsis size={18}/>
           </span>
         </div>
     </div>

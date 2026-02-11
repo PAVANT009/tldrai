@@ -12,6 +12,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-sidebar">
+        {/* //TODO add a tooltip provider here  */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -23,7 +24,7 @@ export default function RootLayout({
             <PageNavbar />
             <div className="flex flex-1 overflow-hidden">
               <AppSidebar />
-              <main className="flex-1 overflow-auto">
+              <main className="flex-1 overflow-auto bg-background rounded-l-2xl">
                 {children}
               </main>
             </div>

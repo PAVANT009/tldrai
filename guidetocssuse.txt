@@ -1,0 +1,127 @@
+CSS TOKEN USAGE GUIDE
+Project: tldrai
+Source: app/globals.css
+
+Core rule
+- Use token pairs together for contrast: `*-foreground` text on top of `*` background.
+- Prefer semantic tokens (primary, muted, destructive) over hardcoded colors.
+
+Color tokens
+1. background / foreground
+- Use for app/page surfaces and default text.
+- Typical classes: `bg-background`, `text-foreground`.
+- Where: page wrappers, main layouts, default content areas.
+
+2. card / card-foreground
+- Use for contained surfaces (cards, panels, chat bubbles if card-like).
+- Typical classes: `bg-card`, `text-card-foreground`.
+- Where: dashboard cards, widgets, grouped containers.
+
+3. popover / popover-foreground
+- Use for floating UI layers.
+- Typical classes: `bg-popover`, `text-popover-foreground`.
+- Where: dropdowns, menus, tooltips, command palettes.
+
+4. primary / primary-foreground
+- Use for main CTA and high-emphasis interactive elements.
+- Typical classes: `bg-primary`, `text-primary-foreground`, `border-primary`.
+- Where: Send button, primary actions, active highlights.
+- Avoid: large passive backgrounds (too strong for big areas).
+
+5. secondary / secondary-foreground
+- Use for secondary actions and softer emphasis.
+- Typical classes: `bg-secondary`, `text-secondary-foreground`.
+- Where: secondary buttons, optional actions, supporting badges.
+
+6. muted / muted-foreground
+- Use for subdued UI surfaces and helper text.
+- Typical classes: `bg-muted`, `text-muted-foreground`.
+- Where: placeholders, metadata, disabled-looking areas, separators.
+
+7. accent / accent-foreground
+- Use for hover/selection or subtle highlighted states.
+- Typical classes: `bg-accent`, `text-accent-foreground`.
+- Where: hovered menu rows, selected-but-not-primary states.
+
+8. destructive / destructive-foreground
+- Use only for danger/error actions.
+- Typical classes: `bg-destructive`, `text-destructive-foreground`.
+- Where: delete, remove, destructive confirms, error chips.
+
+9. border
+- Use for neutral component borders.
+- Typical classes: `border-border`.
+- Where: inputs, cards, separators, outlines.
+
+10. input
+- Use for input background/border semantics (component internals).
+- Typical class usage often comes from UI components; token maps to input styling.
+- Where: text fields, textareas, selects.
+
+11. ring
+- Use for focus ring and accessibility-visible focus states.
+- Typical classes: `ring-ring`, `focus-visible:ring-ring`.
+- Where: all keyboard-focusable controls.
+
+Chart tokens
+12. chart-1 ... chart-5
+- Use as ordered categorical series colors in charts.
+- Keep mapping stable across rerenders/data updates.
+- Where: bar/line/pie datasets and chart legends.
+
+Sidebar tokens
+13. sidebar / sidebar-foreground
+- Sidebar surface + default sidebar text.
+- Classes: `bg-sidebar`, `text-sidebar-foreground`.
+
+14. sidebar-primary / sidebar-primary-foreground
+- Strong emphasis within sidebar.
+- Where: primary nav action, active CTA in sidebar.
+
+15. sidebar-accent / sidebar-accent-foreground
+- Subtle highlight/hover/selected row in sidebar.
+- Where: menu hover/selected background.
+
+16. sidebar-border
+- Sidebar divider and border lines.
+- Where: group separators, panel edges.
+
+17. sidebar-ring
+- Focus ring color for sidebar controls.
+- Where: keyboard focus states within sidebar.
+
+Typography tokens
+18. font-sans / font-serif / font-mono
+- Use semantic font families by content type.
+- Sans: UI labels/body.
+- Serif: editorial/high-contrast headings (if used intentionally).
+- Mono: code, ids, logs, technical values.
+
+Radius tokens
+19. radius, radius-sm/md/lg/xl
+- Use consistent curvature across components.
+- Sm: compact chips/inputs.
+- Md/Lg: cards/buttons.
+- Xl: larger panels/sheets.
+
+Shadow tokens
+20. shadow-2xs/xs/sm/md/lg/xl/2xl
+- Increase depth by hierarchy level, not randomly.
+- Small shadows for inputs/cards, larger shadows for overlays/dialogs.
+
+Practical mapping for this project
+- Chat page background: `bg-background text-foreground`
+- Message bubble (subtle): `bg-accent text-accent-foreground`
+- Send button: `bg-primary text-primary-foreground`
+- Input shell: `border-border` + focus `ring-ring`
+- Helper text/timestamps: `text-muted-foreground`
+- Delete/clear conversation: `bg-destructive text-destructive-foreground`
+
+Do and avoid
+- Do: keep semantic consistency (same intent -> same token).
+- Do: always pair background token with matching foreground token.
+- Avoid: mixing `primary` and random hardcoded colors in same control.
+- Avoid: using `destructive` for non-destructive actions.
+
+Note
+- Your current globals define both light (:root) and dark (.dark) values, so using semantic tokens ensures automatic theme adaptation.

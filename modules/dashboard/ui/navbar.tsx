@@ -36,7 +36,7 @@ export const PageNavbar = () => {
     <>
     <DashboardCommand open={commandOpen} setOpen={setCommandOpen}/>
     <nav className="h-14 flex px-4 items-center py-3  bg-background/10 w-full justify-between border-b dark:border-none"> 
-      <div className="text-3xl">TL;DR</div>
+      <div className="text-3xl">TL<span className="text-primary font-bold text-4xl">;</span>DR</div>
       {/* <Button className="size-9" variant="outline" onClick={toggleSidebar}>
         {state === "collapsed" || isMobile ? (
           <PanelLeftIcon className="size-4" />
