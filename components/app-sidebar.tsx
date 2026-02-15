@@ -76,16 +76,13 @@ export function AppSidebar() {
     <Sidebar className="dark:border-none">
       <SidebarContent className="ml-1.5">
         <SidebarGroup>
-          <div className="my-2.5 h-10 w-[70%] rounded-lg bg-primary px-2 py-1">
+          <div className="my-2.5 h-9 w-[70%] rounded-lg bg-primary px-3 py-1">
             <button
-              className="flex items-center gap-2 text-sm font-medium"
+              className="flex h-full w-full items-center justify-center gap-2 text-sm font-medium"
               onClick={createNewChat}
               disabled={creating}
             >
-              <Plus
-                className="h-4 w-4 rounded-full bg-primary-foreground p-0.5"
-                size={28}
-              />
+              <Plus className="h-4 w-4 rounded-full bg-primary-foreground p-0.5" size={28} />
               <span className="text-primary-foreground">New Chat</span>
             </button>
           </div>
