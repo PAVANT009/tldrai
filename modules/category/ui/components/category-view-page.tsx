@@ -21,9 +21,9 @@ export default function CategoryViewPage() {
   const [activeCategory, setActiveCategory] = useState("All")
 
   return (
-    <div className="flex flex-col py-7 min-w-sm h-full bg-card m-10 border border-border gap-3">
+    <div className="flex flex-col py-7 min-w-sm h-full bg-card m-10 border border-border gap-3 rounded-md">
       <div className="flex flex-row justify-between items-center px-10">
-        <div className="font-bold text-xl">
+        <div className="font-bold text-xl bg-secondary text-secondary-foreground px-1 py-0.5 rounded-md">
           {items.length} Categories
         </div>
 
