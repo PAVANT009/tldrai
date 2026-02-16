@@ -155,9 +155,9 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          <SidebarMenuItem>
+          {/* <SidebarMenuItem>
             <ModeToggle />
-          </SidebarMenuItem>
+          </SidebarMenuItem> */}
 
           <SidebarMenuItem>
             <SidebarMenuButton>Logout</SidebarMenuButton>
