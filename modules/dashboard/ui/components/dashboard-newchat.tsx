@@ -1,4 +1,3 @@
-import { Input } from '@/components/ui/input'
 import React from 'react'
 import { InputGroupCustom } from './dashboard-input-group'
 
@@ -7,12 +6,12 @@ export default function DashboardNewChat() {
     <div className='w-full h-full flex flex-col justify-center px-48 gap-5'>
         {/* Header */}
   <div className="text-4xl w-3/4 font-medium bg-linear-to-r from-black via-primary to-secondary bg-clip-text text-transparent dark:text-shadow-2xs">
-    Hello Chud! <br />
-    <span>what do you have in mind</span>
+    Welcome back! <br />
+    <span>What do you want to ask your PDF today?</span>
   </div>
       {/* muted text */}
       <div className='text-muted-foreground/50 font-medium'>
-        use common fellow prompts below or write your own
+        Start with a prompt below or write your own
       </div>
       {/* usual prompts */}
       <div className='flex flex-row gap-2.5'> 

@@ -13,7 +13,7 @@ interface Props {
  const pages = [
     {
         label: "Dashboard",
-        href: "/",
+        href: "/chat",
     },
     {
         label: "AI Agent",
