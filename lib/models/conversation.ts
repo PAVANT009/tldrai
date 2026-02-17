@@ -18,6 +18,12 @@ const conversationSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      default: null,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -25,6 +31,7 @@ const conversationSchema = new mongoose.Schema(
 );
 
 conversationSchema.index({ userId: 1, updatedAt: -1 });
+conversationSchema.index({ userId: 1, categoryId: 1, updatedAt: -1 });
 
 export type ConversationDocument = InferSchemaType<typeof conversationSchema> & {
   _id: mongoose.Types.ObjectId;
