@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, ChangeEvent, useState } from 'react'
+import { PDFParse } from "pdf-parse";
 import {
   InputGroup,
   InputGroupAddon,
@@ -11,6 +12,7 @@ import TextareaAutosize from "react-textarea-autosize"
 import { useRouter } from 'next/navigation'
 
 export function InputGroupCustom() {
+  // const { PDFParse } = require('pdf-parse');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
@@ -20,14 +22,21 @@ export function InputGroupCustom() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      console.log('Selected files:', files);
-      const firstFile = files[0];
-      console.log('First file name:', firstFile.name);
-    }
-  };
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const res = await fetch("/api/pdf-parse", {
+      method: "POST",
+      body: formData,
+    })
+
+    const data = await res.json()
+    console.log(data.text)
+  }
 
   const handleSubmit = async () => {
     if (!prompt.trim() || loading) return;
@@ -100,6 +109,7 @@ export function InputGroupCustom() {
       <input
         type="file"
         ref={fileInputRef}
+        accept='application/pdf'
         onChange={handleFileChange}
         style={{ display: 'none' }} 
       />

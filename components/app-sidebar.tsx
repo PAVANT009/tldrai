@@ -47,30 +47,30 @@ export function AppSidebar() {
     return () => window.removeEventListener("conversations:refresh", refresh);
   }, [pathname]);
 
-  const createNewChat = async () => {
-    if (creating) return;
-    setCreating(true);
+  // const createNewChat = async () => {
+  //   if (creating) return;
+  //   setCreating(true);
 
-    const res = await fetch("/api/conversations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "New Chat" }),
-    });
+  //   const res = await fetch("/api/conversations", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ title: "New Chat" }),
+  //   });
 
-    if (!res.ok) {
-      setCreating(false);
-      return;
-    }
+  //   if (!res.ok) {
+  //     setCreating(false);
+  //     return;
+  //   }
 
-    const data = await res.json();
-    const conversationId = data.conversation?.id as string;
-    await loadConversations();
-    window.dispatchEvent(new Event("conversations:refresh"));
-    setCreating(false);
-    if (conversationId) {
-      router.push(`/chat/${conversationId}`);
-    }
-  };
+  //   const data = await res.json();
+  //   const conversationId = data.conversation?.id as string;
+  //   await loadConversations();
+  //   window.dispatchEvent(new Event("conversations:refresh"));
+  //   setCreating(false);
+  //   if (conversationId) {
+  //     router.push(`/chat/${conversationId}`);
+  //   }
+  // };
 
   return (
     <Sidebar className="dark:border-none">
@@ -79,7 +79,8 @@ export function AppSidebar() {
           <div className="my-2.5 h-9 w-[70%] rounded-lg bg-primary px-3 py-1">
             <button
               className="flex h-full w-full items-center justify-center gap-2 text-sm font-medium"
-              onClick={createNewChat}
+              // onClick={createNewChat}
+              onClick={() => router.push("/chat")}
               disabled={creating}
             >
               <Plus className="h-4 w-4 rounded-full bg-primary-foreground p-0.5" size={28} />
