@@ -1,18 +1,20 @@
 "use client"
 
 import { useRef, ChangeEvent, useState } from 'react'
-import { PDFParse } from "pdf-parse";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
 } from "@/components/ui/input-group"
-import { Plus } from "lucide-react"
+import { Cross, Plus, X } from "lucide-react"
 import TextareaAutosize from "react-textarea-autosize"
 import { useRouter } from 'next/navigation'
+import {toast } from "sonner"
 
 export function InputGroupCustom() {
   // const { PDFParse } = require('pdf-parse');
+  const [fileName,setFileName] = useState<string|null>(null)
+  const [pdftext,setPdfText] = useState(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
@@ -25,7 +27,7 @@ export function InputGroupCustom() {
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
-
+    setFileName(file.name);
     const formData = new FormData()
     formData.append("file", file)
 
@@ -39,6 +41,7 @@ export function InputGroupCustom() {
   }
 
   const handleSubmit = async () => {
+    if(!pdftext) return toast.warning("you can only start by adding PDF")
     if (!prompt.trim() || loading) return;
     setLoading(true);
 
@@ -70,8 +73,13 @@ export function InputGroupCustom() {
     window.dispatchEvent(new Event("conversations:refresh"));
     router.push(`/chat/${conversationId}`);
     setLoading(false);
+
     setPrompt("");
   };
+  
+  const cancelFile = () => {
+    setFileName(null);
+  } 
 
   return (
     <div className="grid w-full gap-6">
@@ -93,6 +101,18 @@ export function InputGroupCustom() {
           <button type="button" onClick={handlePlusClick} className='border border-border rounded-md p-0.5 bg-muted text-muted-foreground'>
             <Plus />
           </button>
+          {
+            fileName && (
+
+              <div className='flex flex-row items-center justify-center bg-accent border border-border rounded-md h-5 px-1.5 gap-4'>
+            {fileName}
+              <button onClick={() => cancelFile()} className='hover:bg-destructive rounded-md'> 
+                <X className='size-5'/>
+              </button>
+          </div>
+            )
+          }
+
           <InputGroupButton
             className="ml-auto"
             size="sm"
