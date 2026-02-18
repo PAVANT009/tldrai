@@ -18,6 +18,11 @@ const conversationSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    pdfText: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",

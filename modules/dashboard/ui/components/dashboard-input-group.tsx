@@ -6,15 +6,14 @@ import {
   InputGroupAddon,
   InputGroupButton,
 } from "@/components/ui/input-group"
-import { Cross, Plus, X } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import TextareaAutosize from "react-textarea-autosize"
 import { useRouter } from 'next/navigation'
 import {toast } from "sonner"
 
 export function InputGroupCustom() {
-  // const { PDFParse } = require('pdf-parse');
   const [fileName,setFileName] = useState<string|null>(null)
-  const [pdftext,setPdfText] = useState(null);
+  const [pdfText,setPdfText] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
@@ -37,11 +36,18 @@ export function InputGroupCustom() {
     })
 
     const data = await res.json()
-    console.log(data.text)
+    if (!res.ok) {
+      toast.error(data?.error || "Failed to parse PDF")
+      setFileName(null)
+      setPdfText(null)
+      return
+    }
+
+    setPdfText(typeof data?.text === "string" ? data.text : null)
   }
 
   const handleSubmit = async () => {
-    if(!pdftext) return toast.warning("you can only start by adding PDF")
+    if(!pdfText) return toast.warning("You can only start by adding a PDF")
     if (!prompt.trim() || loading) return;
     setLoading(true);
 
@@ -64,11 +70,16 @@ export function InputGroupCustom() {
       return;
     }
 
-    await fetch(`/api/conversations/${conversationId}/messages`, {
+    const messageResponse = await fetch(`/api/conversations/${conversationId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: prompt.trim(), role: "user" }),
+      body: JSON.stringify({ content: prompt.trim(), role: "user", pdfText }),
     });
+
+    if (!messageResponse.ok) {
+      setLoading(false);
+      return;
+    }
 
     window.dispatchEvent(new Event("conversations:refresh"));
     router.push(`/chat/${conversationId}`);
@@ -79,6 +90,10 @@ export function InputGroupCustom() {
   
   const cancelFile = () => {
     setFileName(null);
+    setPdfText(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   } 
 
   return (

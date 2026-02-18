@@ -10,6 +10,7 @@ type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  createdAt?: string;
 };
 
 interface Props {
@@ -77,9 +78,17 @@ export default function DashBoardPage({ conversationId }: Props) {
 
     if (res.ok) {
       const data = await res.json();
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === optimistic.id ? data.message : msg))
-      );
+      setMessages((prev) => {
+        const nextMessages = prev.map((msg) =>
+          msg.id === optimistic.id ? data.message : msg
+        );
+
+        if (data.assistantMessage) {
+          return [...nextMessages, data.assistantMessage];
+        }
+
+        return nextMessages;
+      });
       if (data.conversation?.title) {
         setTitle(data.conversation.title);
       }

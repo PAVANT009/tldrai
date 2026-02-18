@@ -5,6 +5,7 @@ import { Conversation } from "@/lib/models/conversation";
 import { ChatMessage } from "@/lib/models/chat-message";
 import { getCurrentUserId } from "@/lib/server-auth";
 import { toApiErrorResponse } from "@/lib/api-error";
+import { normalizePdfText, summarizePdfWithGemini } from "@/lib/gemini";
 
 function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
@@ -78,6 +79,8 @@ export async function POST(
     const body = await request.json().catch(() => null);
     const content = typeof body?.content === "string" ? body.content.trim() : "";
     const role = body?.role === "assistant" ? "assistant" : "user";
+    const requestPdfText =
+      typeof body?.pdfText === "string" ? normalizePdfText(body.pdfText) : "";
 
     if (!content) {
       return badRequest("Message content is required");
@@ -95,7 +98,64 @@ export async function POST(
         ? content.slice(0, 60)
         : conversation.title;
 
-    conversation.lastMessage = content.slice(0, 120);
+    let assistantPayload: {
+      id: string;
+      role: "assistant";
+      content: string;
+      createdAt: Date;
+    } | null = null;
+
+    if (requestPdfText) {
+      conversation.pdfText = requestPdfText;
+    }
+
+    if (role === "user") {
+      const activePdfText = requestPdfText || conversation.pdfText || "";
+
+      if (activePdfText) {
+        try {
+          const summary = await summarizePdfWithGemini(activePdfText, content);
+          const assistantMessage = await ChatMessage.create({
+            conversationId,
+            userId,
+            role: "assistant",
+            content: summary,
+          });
+
+          assistantPayload = {
+            id: assistantMessage._id.toString(),
+            role: "assistant",
+            content: assistantMessage.content,
+            createdAt: assistantMessage.createdAt,
+          };
+
+          conversation.lastMessage = summary.slice(0, 120);
+        } catch (error) {
+          console.error("Gemini summary generation failed:", error);
+          const assistantMessage = await ChatMessage.create({
+            conversationId,
+            userId,
+            role: "assistant",
+            content:
+              "I could not summarize this PDF right now. Please try again in a moment.",
+          });
+
+          assistantPayload = {
+            id: assistantMessage._id.toString(),
+            role: "assistant",
+            content: assistantMessage.content,
+            createdAt: assistantMessage.createdAt,
+          };
+
+          conversation.lastMessage = assistantMessage.content.slice(0, 120);
+        }
+      } else {
+        conversation.lastMessage = content.slice(0, 120);
+      }
+    } else {
+      conversation.lastMessage = content.slice(0, 120);
+    }
+
     conversation.title = title || conversation.title;
     await conversation.save();
 
@@ -111,6 +171,7 @@ export async function POST(
           id: conversation._id.toString(),
           title: conversation.title,
         },
+        assistantMessage: assistantPayload,
       },
       { status: 201 }
     );
