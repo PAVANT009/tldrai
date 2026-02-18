@@ -131,7 +131,7 @@ export default function DashBoardPage({ conversationId }: Props) {
                 }
               >
                 {chatMessage.role === "user" ? <User2 /> : <Bot />}
-                <span className="flex min-h-9 min-w-[15%] max-w-[70%] items-center rounded-md bg-accent/50 px-2 py-2.5 text-accent-foreground/90">
+                <span className="flex min-h-9 min-w-[15%] max-w-[70%] items-center rounded-md bg-accent/50 px-2 py-2.5 text-accent-foreground/80 text-sm">
                   {chatMessage.content}
                 </span>
               </div>

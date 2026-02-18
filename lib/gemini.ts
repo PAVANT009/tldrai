@@ -26,18 +26,36 @@ export async function summarizePdfWithGemini(
   // 3. Prepare Content
   const trimmedText = normalizePdfText(pdfText);
 // TODO: this annoying ass is giving trimmed text every time so have to change it 
+
+//   const prompt = `
+// Summarize the following PDF content and then answer the user's question.
+
+// PDF CONTENT:
+// ${trimmedText}
+
+// USER QUESTION:
+// ${question}
+
+// INSTRUCTIONS:
+// Answer the question using the content as context if the user asks summary then give him summary.
+// `;
   const prompt = `
-Summarize the following PDF content and then answer the user's question.
+  You must answer only from the PDF text below.
 
-PDF CONTENT:
-${trimmedText}
+  If user asks for a summary:
+  - Return a short summary (3-8 bullet points).
 
-USER QUESTION:
-${question}
+  If user asks a question:
+  - Answer directly from PDF content.
+  - If not found, say: "I couldn't find this in the provided PDF."
+  - Add 1-3 short evidence lines from the PDF.
 
-INSTRUCTIONS:
-Answer the question using the content as context if the user asks summary then give him summary.
-`;
+  PDF:
+  """${trimmedText}"""
+
+  Question:
+  """${question}"""
+  `;
 
   try {
     // 4. Generate Content
