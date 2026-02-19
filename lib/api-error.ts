@@ -32,6 +32,13 @@ export function toApiErrorResponse(error: unknown) {
     );
   }
 
+  if (err?.code === "AUTH_REQUIRED") {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: err.statusCode || 401 }
+    );
+  }
+
   console.error("API error:", err);
   return NextResponse.json(
     { error: "Internal server error" },

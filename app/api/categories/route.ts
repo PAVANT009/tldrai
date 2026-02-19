@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Category } from "@/lib/models/category";
-import { getCurrentUserId } from "@/lib/server-auth";
+import { requireCurrentUserId } from "@/lib/server-auth";
 import { toApiErrorResponse } from "@/lib/api-error";
 
 function badRequest(message: string) {
@@ -11,7 +11,7 @@ function badRequest(message: string) {
 export async function GET() {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
 
     const categories = await Category.find({ userId })
       .sort({ updatedAt: -1 })
@@ -32,7 +32,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
     // const userId = "123"
 
     const body = await request.json().catch(() => ({}));

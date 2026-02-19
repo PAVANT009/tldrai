@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import pdf from "pdf-parse/lib/pdf-parse.js"
+import { requireCurrentUserId } from "@/lib/server-auth"
+import { toApiErrorResponse } from "@/lib/api-error"
 
 export const runtime = "nodejs"
 
 export async function POST(req: NextRequest) {
   try {
+    await requireCurrentUserId()
+
     const formData = await req.formData()
     const file = formData.get("file") as File
 
@@ -22,10 +26,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ text: result.text })
 
   } catch (error) {
-    console.error("PDF Parse Error:", error)
-    return NextResponse.json(
-      { error: "Failed to parse PDF" },
-      { status: 500 }
-    )
+    return toApiErrorResponse(error)
   }
 }

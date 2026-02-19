@@ -5,7 +5,7 @@ export default function DashboardNewChat() {
   return (
     <div className='w-full h-full flex flex-col justify-center px-48 gap-5'>
         {/* Header */}
-  <div className="text-4xl w-3/4 font-medium bg-linear-to-r from-black via-primary to-secondary bg-clip-text text-transparent dark:text-shadow-2xs">
+  <div className="text-4xl w-3/4 font-medium bg-linear-to-r from-black dark:from-white via-primary to-secondary bg-clip-text text-transparent dark:text-shadow-2xs">
     Welcome back! <br />
     <span>What do you want to ask your PDF today?</span>
   </div>
