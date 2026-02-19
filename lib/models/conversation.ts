@@ -37,6 +37,14 @@ const conversationSchema = new mongoose.Schema(
 
 conversationSchema.index({ userId: 1, updatedAt: -1 });
 conversationSchema.index({ userId: 1, categoryId: 1, updatedAt: -1 });
+conversationSchema.virtual("category", {
+  ref: "Category",
+  localField: "categoryId",
+  foreignField: "_id",
+  justOne: true,
+});
+conversationSchema.set("toJSON", { virtuals: true });
+conversationSchema.set("toObject", { virtuals: true });
 
 export type ConversationDocument = InferSchemaType<typeof conversationSchema> & {
   _id: mongoose.Types.ObjectId;

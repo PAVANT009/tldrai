@@ -6,12 +6,52 @@ import { Category } from "@/lib/models/category";
 import { requireCurrentUserId } from "@/lib/server-auth";
 import { toApiErrorResponse } from "@/lib/api-error";
 
+type CategoryValue = {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+} | null;
+
+function getCategoryId(value: unknown) {
+  if (!value) return null;
+  if (value instanceof mongoose.Types.ObjectId) {
+    return value.toString();
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "_id" in value &&
+    (value as { _id?: unknown })._id instanceof mongoose.Types.ObjectId
+  ) {
+    return (value as { _id: mongoose.Types.ObjectId })._id.toString();
+  }
+  return null;
+}
+
+function mapCategory(value: unknown) {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("_id" in value) ||
+    !("name" in value) ||
+    !((value as { _id?: unknown })._id instanceof mongoose.Types.ObjectId) ||
+    typeof (value as { name?: unknown }).name !== "string"
+  ) {
+    return null;
+  }
+  const category = value as NonNullable<CategoryValue>;
+  return {
+    id: category._id.toString(),
+    name: category.name,
+  };
+}
+
 export async function GET() {
   try {
     await connectToDatabase();
     const userId = await requireCurrentUserId();
 
     const conversations = await Conversation.find({ userId })
+      .populate("categoryId", "name")
       .sort({ updatedAt: -1 })
       .lean();
 
@@ -20,7 +60,8 @@ export async function GET() {
         id: c._id.toString(),
         title: c.title,
         lastMessage: c.lastMessage || "",
-        categoryId: c.categoryId ? c.categoryId.toString() : null,
+        categoryId: getCategoryId(c.categoryId),
+        category: mapCategory(c.categoryId),
         updatedAt: c.updatedAt,
       })),
     });
@@ -60,15 +101,15 @@ export async function POST(request: NextRequest) {
       lastMessage: "",
       categoryId: resolvedCategoryId,
     });
+    await conversation.populate("categoryId", "name");
 
     return NextResponse.json(
       {
         conversation: {
           id: conversation._id.toString(),
           title: conversation.title,
-          categoryId: conversation.categoryId
-            ? conversation.categoryId.toString()
-            : null,
+          categoryId: getCategoryId(conversation.categoryId),
+          category: mapCategory(conversation.categoryId),
           updatedAt: conversation.updatedAt,
         },
       },

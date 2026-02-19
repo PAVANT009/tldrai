@@ -11,6 +11,45 @@ function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
 
+type PopulatedCategory = {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+} | null;
+
+function getCategoryId(value: unknown) {
+  if (!value) return null;
+  if (value instanceof mongoose.Types.ObjectId) {
+    return value.toString();
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "_id" in value &&
+    (value as { _id?: unknown })._id instanceof mongoose.Types.ObjectId
+  ) {
+    return (value as { _id: mongoose.Types.ObjectId })._id.toString();
+  }
+  return null;
+}
+
+function mapCategory(value: unknown) {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("_id" in value) ||
+    !("name" in value) ||
+    !((value as { _id?: unknown })._id instanceof mongoose.Types.ObjectId) ||
+    typeof (value as { name?: unknown }).name !== "string"
+  ) {
+    return null;
+  }
+  const category = value as NonNullable<PopulatedCategory>;
+  return {
+    id: category._id.toString(),
+    name: category.name,
+  };
+}
+
 export async function GET(
   _: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -27,7 +66,9 @@ export async function GET(
     const conversation = await Conversation.findOne({
       _id: conversationId,
       userId,
-    }).lean();
+    })
+      .populate("categoryId", "name")
+      .lean();
     if (!conversation) {
       return NextResponse.json(
         { error: "Conversation not found" },
@@ -45,9 +86,8 @@ export async function GET(
         id: conversation._id.toString(),
         title: conversation.title,
         lastMessage: conversation.lastMessage || "",
-        categoryId: conversation.categoryId
-          ? conversation.categoryId.toString()
-          : null,
+        categoryId: getCategoryId(conversation.categoryId),
+        category: mapCategory(conversation.categoryId),
         messageCount,
         updatedAt: conversation.updatedAt,
         createdAt: conversation.createdAt,
@@ -114,15 +154,15 @@ export async function PATCH(
     }
 
     await conversation.save();
+    await conversation.populate("categoryId", "name");
 
     return NextResponse.json({
       conversation: {
         id: conversation._id.toString(),
         title: conversation.title,
         lastMessage: conversation.lastMessage || "",
-        categoryId: conversation.categoryId
-          ? conversation.categoryId.toString()
-          : null,
+        categoryId: getCategoryId(conversation.categoryId),
+        category: mapCategory(conversation.categoryId),
         updatedAt: conversation.updatedAt,
         createdAt: conversation.createdAt,
       },

@@ -14,7 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Bolt, Home, Plus, User2 } from "lucide-react";
+import { Bolt, Home, Plus } from "lucide-react";
 import MenuSVG from "@/components/MenuSVG";
 import { ScrollArea } from "./ui/scroll-area";
 import { authClient } from "@/lib/auth-client";

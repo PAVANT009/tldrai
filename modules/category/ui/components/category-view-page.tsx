@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import DNDView from "./dnd-view"
 import { Pin, Plus, Tag } from "lucide-react"
 import ConversationTables from "./converstaion-category"
@@ -11,12 +11,22 @@ interface UserCategories {
 }
 
 export default function CategoryViewPage() {
+  const [categories, setCategories] = useState([]);
   const [items, setItems] = useState<UserCategories[]>([
     { id: 1, name: "Finance" },
     { id: 2, name: "Engineering" },
     { id: 3, name: "Research" },
     { id: 4, name: "Design" },
   ])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const res = await fetch("api/categories");
+      const data  = await res.json();
+      setCategories(data);
+    }
+    fetchCategories();
+  },[])
 
   const [activeCategory, setActiveCategory] = useState("All")
 
@@ -55,6 +65,15 @@ export default function CategoryViewPage() {
           <div className="border-t border-t-border">
             <DNDView items={items} setItems={setItems} setActiveCategory={setActiveCategory} />
           </div>
+          {
+            categories.length === 0 ? (
+              <p>Not have any</p>
+            ): (
+              categories?.map((cat,i) => (
+                <div key={i}>{cat}</div>
+              ))
+            )
+          }
         </div>
 
         <div className="flex-1">
