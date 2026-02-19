@@ -18,6 +18,8 @@ import { Bolt, Home, Plus, User2 } from "lucide-react";
 import MenuSVG from "@/components/MenuSVG";
 import { ScrollArea } from "./ui/scroll-area";
 import { authClient } from "@/lib/auth-client";
+import { generateAvatar } from "@/lib/avatar";
+import Image from "next/image";
 
 type Conversation = {
   id: string;
@@ -49,6 +51,7 @@ export function AppSidebar() {
     return () => window.removeEventListener("conversations:refresh", refresh);
   }, [pathname]);
 
+  const createdSvg = generateAvatar(session?.user?.name ?? session?.user?.email ?? "User")
   // const createNewChat = async () => {
   //   if (creating) return;
   //   setCreating(true);
@@ -156,7 +159,10 @@ export function AppSidebar() {
         <SidebarMenu className="flex flex-row">
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <User2 /> {session?.user?.name ?? session?.user?.email ?? "User"}
+              <Image src={createdSvg} height={34} width={34} alt="avatar" className="rounded-md"/>
+              {session?.user?.name ?? session?.user?.email ?? "User"}
+              {/* {createdSvg} */}
+              {/* <User2 /> {session?.user?.name ?? session?.user?.email ?? "User"} */}
             </SidebarMenuButton>
           </SidebarMenuItem>
 
