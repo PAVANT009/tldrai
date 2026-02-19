@@ -1,7 +1,11 @@
-import React from 'react'
+"use client";
+
+import React, { useState } from 'react'
 import { InputGroupCustom } from './dashboard-input-group'
 
 export default function DashboardNewChat() {
+    const [prompt, setPrompt] = useState("");
+
   return (
     <div className='w-full h-full flex flex-col justify-center px-48 gap-5'>
         {/* Header */}
@@ -15,18 +19,18 @@ export default function DashboardNewChat() {
       </div>
       {/* usual prompts */}
       <div className='flex flex-row gap-2.5'> 
-            <div className='h-32 w-52 bg-muted border border-border rounded-md px-2 py-2.5 font-medium text-muted-foreground'>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore, eius?
+            <div className='h-32 w-52 bg-muted border border-border rounded-md px-2 py-2.5 font-medium text-muted-foreground' onClick={() => setPrompt("Summarize this document in simple terms.")}>
+                Summarize this document in simple terms.
             </div>
-            <div className='h-32 w-52 bg-muted border border-border rounded-md px-2 py-2.5 font-medium text-muted-foreground'>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, officiis!
+            <div className='h-32 w-52 bg-muted border border-border rounded-md px-2 py-2.5 font-medium text-muted-foreground' onClick={() => setPrompt("What are the key points or important highlights in this file?")}>
+                What are the key points or important highlights in this file?
             </div>
-            <div className='h-32 w-52 bg-muted border border-border rounded-md px-2 py-2.5 font-medium text-muted-foreground'>
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quam, cum!
+            <div className='h-32 w-52 bg-muted border border-border rounded-md px-2 py-2.5 font-medium text-muted-foreground' onClick={() => setPrompt("Explain the main concepts in this document with examples.")}>
+                Explain the main concepts in this document with examples.
             </div>
       </div>
       {/* input */}
-      <InputGroupCustom />
+      <InputGroupCustom prompt={prompt} setPrompt={setPrompt} />
     </div>
   )
 }
