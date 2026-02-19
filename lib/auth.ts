@@ -20,6 +20,8 @@ if (!global.betterAuthMongoClient) {
 }
 
 const authSecret = process.env.BETTER_AUTH_SECRET;
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 if (!authSecret) {
   throw new Error("Missing BETTER_AUTH_SECRET in environment variables");
@@ -35,4 +37,14 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: true,
   },
+  socialProviders:
+    googleClientId && googleClientSecret
+      ? {
+          google: {
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+            prompt: "select_account",
+          },
+        }
+      : undefined,
 });
