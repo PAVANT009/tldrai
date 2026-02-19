@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import DNDView from "./dnd-view"
 import { Pin, Plus, Tag } from "lucide-react"
 import ConversationTables from "./converstaion-category"
+import dynamic from "next/dynamic"
+
+const DNDView = dynamic(() => import("./dnd-view"), { ssr: false })
 
 interface UserCategories {
   name: string
@@ -28,6 +30,20 @@ export default function CategoryViewPage() {
     fetchCategories();
   },[])
 
+  const addCategory = async() => {
+    const res = await fetch("api/categories", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "School"
+      })
+    })
+    const data = await res.json()
+    console.log(data)
+    if(!res.ok) {
+      console.log("error")
+    }
+  }
+
   const [activeCategory, setActiveCategory] = useState("All")
 
   return (
@@ -37,7 +53,7 @@ export default function CategoryViewPage() {
           {items.length} Categories
         </div>
 
-        <button className="bg-primary text-primary-foreground flex flex-row px-2 py-1.5 rounded-md">
+        <button className="bg-primary text-primary-foreground flex flex-row px-2 py-1.5 rounded-md" onClick={() => addCategory()}>
           <Plus />
           Add Category
         </button>
@@ -65,15 +81,13 @@ export default function CategoryViewPage() {
           <div className="border-t border-t-border">
             <DNDView items={items} setItems={setItems} setActiveCategory={setActiveCategory} />
           </div>
-          {
-            categories.length === 0 ? (
-              <p>Not have any</p>
-            ): (
-              categories?.map((cat,i) => (
-                <div key={i}>{cat}</div>
-              ))
-            )
-          }
+          {!categories?.length ? (
+            <p>No categories available</p>
+          ) : (
+            categories.map((cat) => (
+              <div key={cat}>{cat}</div>
+            ))
+          )}
         </div>
 
         <div className="flex-1">

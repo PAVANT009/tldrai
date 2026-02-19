@@ -13,6 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: "UTC",
+})
+
 type ConversationRow = {
   id: string
   title: string
@@ -158,7 +162,7 @@ export default function ConversationTables({activeCategory,setActiveCategory}: C
                   </TableCell>
                   <TableCell>{row.messages}</TableCell>
                   <TableCell>
-                    {new Date(row.updatedAt).toLocaleDateString()}
+                    {dateFormatter.format(new Date(row.updatedAt))}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="xs" asChild>
