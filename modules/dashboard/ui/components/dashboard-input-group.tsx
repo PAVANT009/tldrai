@@ -6,11 +6,14 @@ import {
   InputGroupAddon,
   InputGroupButton,
 } from "@/components/ui/input-group"
-import { Plus } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import TextareaAutosize from "react-textarea-autosize"
 import { useRouter } from 'next/navigation'
+import {toast } from "sonner"
 
 export function InputGroupCustom() {
+  const [fileName,setFileName] = useState<string|null>(null)
+  const [pdfText,setPdfText] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
@@ -20,16 +23,31 @@ export function InputGroupCustom() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      console.log('Selected files:', files);
-      const firstFile = files[0];
-      console.log('First file name:', firstFile.name);
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setFileName(file.name);
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const res = await fetch("/api/pdf-parse", {
+      method: "POST",
+      body: formData,
+    })
+
+    const data = await res.json()
+    if (!res.ok) {
+      toast.error(data?.error || "Failed to parse PDF")
+      setFileName(null)
+      setPdfText(null)
+      return
     }
-  };
+
+    setPdfText(typeof data?.text === "string" ? data.text : null)
+  }
 
   const handleSubmit = async () => {
+    if(!pdfText) return toast.warning("You can only start by adding a PDF")
     if (!prompt.trim() || loading) return;
     setLoading(true);
 
@@ -52,17 +70,31 @@ export function InputGroupCustom() {
       return;
     }
 
-    await fetch(`/api/conversations/${conversationId}/messages`, {
+    const messageResponse = await fetch(`/api/conversations/${conversationId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: prompt.trim(), role: "user" }),
+      body: JSON.stringify({ content: prompt.trim(), role: "user", pdfText }),
     });
+
+    if (!messageResponse.ok) {
+      setLoading(false);
+      return;
+    }
 
     window.dispatchEvent(new Event("conversations:refresh"));
     router.push(`/chat/${conversationId}`);
     setLoading(false);
+
     setPrompt("");
   };
+  
+  const cancelFile = () => {
+    setFileName(null);
+    setPdfText(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  } 
 
   return (
     <div className="grid w-full gap-6">
@@ -84,6 +116,18 @@ export function InputGroupCustom() {
           <button type="button" onClick={handlePlusClick} className='border border-border rounded-md p-0.5 bg-muted text-muted-foreground'>
             <Plus />
           </button>
+          {
+            fileName && (
+
+              <div className='flex flex-row items-center justify-center bg-accent border border-border rounded-md h-5 px-1.5 gap-4'>
+            {fileName}
+              <button onClick={() => cancelFile()} className='hover:bg-destructive rounded-md'> 
+                <X className='size-5'/>
+              </button>
+          </div>
+            )
+          }
+
           <InputGroupButton
             className="ml-auto"
             size="sm"
@@ -100,6 +144,7 @@ export function InputGroupCustom() {
       <input
         type="file"
         ref={fileInputRef}
+        accept='application/pdf'
         onChange={handleFileChange}
         style={{ display: 'none' }} 
       />

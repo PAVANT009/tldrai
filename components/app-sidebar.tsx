@@ -17,6 +17,7 @@ import {
 import { Bolt, Home, Plus, User2 } from "lucide-react";
 import { ModeToggle } from "./toggle-btn";
 import MenuSVG from "@/components/MenuSVG";
+import { ScrollArea } from "./ui/scroll-area";
 
 type Conversation = {
   id: string;
@@ -47,39 +48,40 @@ export function AppSidebar() {
     return () => window.removeEventListener("conversations:refresh", refresh);
   }, [pathname]);
 
-  const createNewChat = async () => {
-    if (creating) return;
-    setCreating(true);
+  // const createNewChat = async () => {
+  //   if (creating) return;
+  //   setCreating(true);
 
-    const res = await fetch("/api/conversations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "New Chat" }),
-    });
+  //   const res = await fetch("/api/conversations", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ title: "New Chat" }),
+  //   });
 
-    if (!res.ok) {
-      setCreating(false);
-      return;
-    }
+  //   if (!res.ok) {
+  //     setCreating(false);
+  //     return;
+  //   }
 
-    const data = await res.json();
-    const conversationId = data.conversation?.id as string;
-    await loadConversations();
-    window.dispatchEvent(new Event("conversations:refresh"));
-    setCreating(false);
-    if (conversationId) {
-      router.push(`/chat/${conversationId}`);
-    }
-  };
+  //   const data = await res.json();
+  //   const conversationId = data.conversation?.id as string;
+  //   await loadConversations();
+  //   window.dispatchEvent(new Event("conversations:refresh"));
+  //   setCreating(false);
+  //   if (conversationId) {
+  //     router.push(`/chat/${conversationId}`);
+  //   }
+  // };
 
   return (
     <Sidebar className="dark:border-none">
-      <SidebarContent className="ml-1.5">
+      <SidebarContent className="ml-1.5 overflow-hidden">
         <SidebarGroup>
           <div className="my-2.5 h-9 w-[70%] rounded-lg bg-primary px-3 py-1">
             <button
               className="flex h-full w-full items-center justify-center gap-2 text-sm font-medium"
-              onClick={createNewChat}
+              // onClick={createNewChat}
+              onClick={() => router.push("/chat")}
               disabled={creating}
             >
               <Plus className="h-4 w-4 rounded-full bg-primary-foreground p-0.5" size={28} />
@@ -111,39 +113,42 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
+        <SidebarGroup className="min-h-0 flex-1">
           <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
 
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {conversations.length === 0 ? (
+          <SidebarGroupContent className="min-h-0">
+            {conversations.length === 0 ? (
+              <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton className="bg-sidebar-accent/20 text-xs text-muted-foreground">
                     No chats yet
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ) : (
-                conversations.map((chat) => {
-                  const isActive = pathname === `/chat/${chat.id}`;
-                  return (
-                    <SidebarMenuItem key={chat.id}>
-                      <SidebarMenuButton
-                        asChild
-                        className={isActive ? "bg-sidebar-accent/90" : "bg-sidebar-accent/20"}
-                      >
-                        <Link href={`/chat/${chat.id}`}>
-                          {isActive && (
-                            <span className="h-6 w-2 rounded-sm bg-primary" />
-                          )}
-                          <span className="truncate">{chat.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
+              </SidebarMenu>
+            ) : (
+              <ScrollArea className="h-full">
+                <SidebarMenu>
+                  {/* TODO:  Recent chats title should come from ai nor from user text[0]  */}
+                  {conversations.map((chat) => {
+                    const isActive = pathname === `/chat/${chat.id}`;
+                    return (
+                      <SidebarMenuItem key={chat.id}>
+                        <SidebarMenuButton
+                          asChild
+                          className={isActive ? "bg-sidebar-accent/90" : "bg-sidebar-accent/20"}
+                        >
+                          <Link href={`/chat/${chat.id}`}>
+                            {isActive && <span className="h-6 w-2 rounded-sm bg-primary" />}
+                            <span className="truncate">{chat.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </ScrollArea>
+            )}
+conversatio          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
