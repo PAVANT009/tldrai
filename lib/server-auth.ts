@@ -1,8 +1,26 @@
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
-// Replace this function with your actual auth integration.
-// For now, it accepts an `x-user-id` header and falls back to a demo id.
 export async function getCurrentUserId() {
-  const h = await headers();
-  return h.get("x-user-id") || "demo-user";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  return session?.user?.id ?? null;
+}
+
+export async function requireCurrentUserId() {
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    const authError = new Error("Authentication required") as Error & {
+      code?: string;
+      statusCode?: number;
+    };
+    authError.code = "AUTH_REQUIRED";
+    authError.statusCode = 401;
+    throw authError;
+  }
+
+  return userId;
 }

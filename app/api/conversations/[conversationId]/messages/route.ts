@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Conversation } from "@/lib/models/conversation";
 import { ChatMessage } from "@/lib/models/chat-message";
-import { getCurrentUserId } from "@/lib/server-auth";
+import { requireCurrentUserId } from "@/lib/server-auth";
 import { toApiErrorResponse } from "@/lib/api-error";
 import { normalizePdfText, summarizePdfWithGemini } from "@/lib/gemini";
 
@@ -17,7 +17,7 @@ export async function GET(
 ) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
     const { conversationId } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
@@ -60,7 +60,7 @@ export async function POST(
 ) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
     const { conversationId } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {

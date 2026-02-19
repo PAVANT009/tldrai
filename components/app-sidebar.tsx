@@ -15,9 +15,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Bolt, Home, Plus, User2 } from "lucide-react";
-import { ModeToggle } from "./toggle-btn";
 import MenuSVG from "@/components/MenuSVG";
 import { ScrollArea } from "./ui/scroll-area";
+import { authClient } from "@/lib/auth-client";
+import { generateAvatar } from "@/lib/avatar";
+import Image from "next/image";
 
 type Conversation = {
   id: string;
@@ -29,8 +31,9 @@ type Conversation = {
 export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session } = authClient.useSession();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [creating, setCreating] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const loadConversations = async () => {
     const res = await fetch("/api/conversations");
@@ -48,6 +51,7 @@ export function AppSidebar() {
     return () => window.removeEventListener("conversations:refresh", refresh);
   }, [pathname]);
 
+  const createdSvg = generateAvatar(session?.user?.name ?? session?.user?.email ?? "User")
   // const createNewChat = async () => {
   //   if (creating) return;
   //   setCreating(true);
@@ -82,7 +86,6 @@ export function AppSidebar() {
               className="flex h-full w-full items-center justify-center gap-2 text-sm font-medium"
               // onClick={createNewChat}
               onClick={() => router.push("/chat")}
-              disabled={creating}
             >
               <Plus className="h-4 w-4 rounded-full bg-primary-foreground p-0.5" size={28} />
               <span className="text-primary-foreground">New Chat</span>
@@ -148,7 +151,7 @@ export function AppSidebar() {
                 </SidebarMenu>
               </ScrollArea>
             )}
-conversatio          </SidebarGroupContent>
+          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
@@ -156,7 +159,10 @@ conversatio          </SidebarGroupContent>
         <SidebarMenu className="flex flex-row">
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <User2 /> User
+              <Image src={createdSvg} height={34} width={34} alt="avatar" className="rounded-md"/>
+              {session?.user?.name ?? session?.user?.email ?? "User"}
+              {/* {createdSvg} */}
+              {/* <User2 /> {session?.user?.name ?? session?.user?.email ?? "User"} */}
             </SidebarMenuButton>
           </SidebarMenuItem>
 
@@ -165,7 +171,17 @@ conversatio          </SidebarGroupContent>
           </SidebarMenuItem> */}
 
           <SidebarMenuItem>
-            <SidebarMenuButton>Logout</SidebarMenuButton>
+            <SidebarMenuButton
+              disabled={loggingOut}
+              onClick={async () => {
+                setLoggingOut(true);
+                await authClient.signOut();
+                router.replace("/signin");
+                router.refresh();
+              }}
+            >
+              {loggingOut ? "Logging out..." : "Logout"}
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

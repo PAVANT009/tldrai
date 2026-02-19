@@ -4,7 +4,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Conversation } from "@/lib/models/conversation";
 import { ChatMessage } from "@/lib/models/chat-message";
 import { Category } from "@/lib/models/category";
-import { getCurrentUserId } from "@/lib/server-auth";
+import { requireCurrentUserId } from "@/lib/server-auth";
 import { toApiErrorResponse } from "@/lib/api-error";
 
 function badRequest(message: string) {
@@ -17,7 +17,7 @@ export async function GET(
 ) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
     const { conversationId } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
@@ -64,7 +64,7 @@ export async function PATCH(
 ) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
     const { conversationId } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
@@ -138,7 +138,7 @@ export async function DELETE(
 ) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
     const { conversationId } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {

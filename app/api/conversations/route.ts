@@ -3,13 +3,13 @@ import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Conversation } from "@/lib/models/conversation";
 import { Category } from "@/lib/models/category";
-import { getCurrentUserId } from "@/lib/server-auth";
+import { requireCurrentUserId } from "@/lib/server-auth";
 import { toApiErrorResponse } from "@/lib/api-error";
 
 export async function GET() {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
 
     const conversations = await Conversation.find({ userId })
       .sort({ updatedAt: -1 })
@@ -32,7 +32,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
 
     const body = await request.json().catch(() => ({}));
     const requestedTitle =

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, ChangeEvent, useState } from 'react'
+import { useRef, ChangeEvent, useState, Dispatch, SetStateAction } from 'react'
 import {
   InputGroup,
   InputGroupAddon,
@@ -11,12 +11,16 @@ import TextareaAutosize from "react-textarea-autosize"
 import { useRouter } from 'next/navigation'
 import {toast } from "sonner"
 
-export function InputGroupCustom() {
+interface InputGroupCustomProps{
+  prompt: string
+  setPrompt:Dispatch<SetStateAction<string>>
+}
+
+export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
   const [fileName,setFileName] = useState<string|null>(null)
   const [pdfText,setPdfText] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handlePlusClick = () => {

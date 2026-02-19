@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Category } from "@/lib/models/category";
-import { getCurrentUserId } from "@/lib/server-auth";
+import { requireCurrentUserId } from "@/lib/server-auth";
 import { toApiErrorResponse } from "@/lib/api-error";
 
 function badRequest(message: string) {
@@ -15,7 +15,7 @@ export async function PATCH(
 ) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
     const { categoryId } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
@@ -55,7 +55,7 @@ export async function DELETE(
 ) {
   try {
     await connectToDatabase();
-    const userId = await getCurrentUserId();
+    const userId = await requireCurrentUserId();
     const { categoryId } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
