@@ -128,6 +128,7 @@ export function AppSidebar() {
             ) : (
               <ScrollArea className="h-full">
                 <SidebarMenu>
+                  {/* TODO:  Recent chats title should come from ai nor from user text[0]  */}
                   {conversations.map((chat) => {
                     const isActive = pathname === `/chat/${chat.id}`;
                     return (

@@ -32,8 +32,8 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
-    // const userId = await getCurrentUserId();
-    const userId = "123"
+    const userId = await getCurrentUserId();
+    // const userId = "123"
 
     const body = await request.json().catch(() => ({}));
     const name = typeof body?.name === "string" ? body.name : "";

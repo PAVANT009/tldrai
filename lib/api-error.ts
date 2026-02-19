@@ -21,6 +21,17 @@ export function toApiErrorResponse(error: unknown) {
     );
   }
 
+  if (err?.code === "DB_SERVER_SELECTION_TIMEOUT") {
+    return NextResponse.json(
+      {
+        error:
+          "Database server selection timed out. Check Atlas IP Access List, connection URI, and cluster availability.",
+        code: "DB_SERVER_SELECTION_TIMEOUT",
+      },
+      { status: err.statusCode || 503 }
+    );
+  }
+
   console.error("API error:", err);
   return NextResponse.json(
     { error: "Internal server error" },
