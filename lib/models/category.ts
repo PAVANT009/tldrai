@@ -34,12 +34,11 @@ categorySchema.index(
   }
 );
 
-categorySchema.pre("validate", function (next) {
+categorySchema.pre("validate", async function () {
   if (typeof this.name === "string") {
     this.name = this.name.trim();
     this.nameKey = this.name.toLowerCase();
   }
-  next();
 });
 
 export type CategoryDocument = InferSchemaType<typeof categorySchema> & {

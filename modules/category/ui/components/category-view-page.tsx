@@ -1,11 +1,20 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Pin, Plus, Tag } from "lucide-react"
 import ConversationTables from "./converstaion-category"
 import dynamic from "next/dynamic"
+import { SheetDemo } from "./Sheet-category"
+import { AddCategoryDialog } from "./modal-category"
 
 const DNDView = dynamic(() => import("./dnd-view"), { ssr: false })
+
+
+interface Categories {
+    id: number,
+    name: string,
+    // updatedAt: number,
+}
 
 interface UserCategories {
   name: string
@@ -13,7 +22,7 @@ interface UserCategories {
 }
 
 export default function CategoryViewPage() {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<Categories[]>([]);
   const [items, setItems] = useState<UserCategories[]>([
     { id: 1, name: "Finance" },
     { id: 2, name: "Engineering" },
@@ -21,28 +30,35 @@ export default function CategoryViewPage() {
     { id: 4, name: "Design" },
   ])
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const res = await fetch("api/categories");
-      const data  = await res.json();
-      setCategories(data);
-    }
-    fetchCategories();
-  },[])
+const loadCategories = useCallback(async () => {
+  const res = await fetch("/api/categories");
+  const data = await res.json();
+  setCategories(data.categories.map((cat: Categories,i:number) => ({
+    id:i,
+    name:cat.name
+  })));
+  console.log(data)
+}, []);
 
-  const addCategory = async() => {
-    const res = await fetch("api/categories", {
-      method: "POST",
-      body: JSON.stringify({
-        name: "School"
-      })
-    })
-    const data = await res.json()
-    console.log(data)
-    if(!res.ok) {
-      console.log("error")
-    }
-  }
+useEffect(() => {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  loadCategories();
+}, [loadCategories]);
+
+
+  // const addCategory = async() => {
+  //   const res = await fetch("api/categories", {
+  //     method: "POST",
+  //     body: JSON.stringify({
+  //       name: "School"
+  //     })
+  //   })
+  //   const data = await res.json()
+  //   console.log(data)
+  //   if(!res.ok) {
+  //     console.log("error")
+  //   }
+  // }
 
   const [activeCategory, setActiveCategory] = useState("All")
 
@@ -53,10 +69,11 @@ export default function CategoryViewPage() {
           {items.length} Categories
         </div>
 
-        <button className="bg-primary text-primary-foreground flex flex-row px-2 py-1.5 rounded-md" onClick={() => addCategory()}>
+        {/* <button className="bg-primary text-primary-foreground flex flex-row px-2 py-1.5 rounded-md" onClick={() => addCategory()}>
           <Plus />
           Add Category
-        </button>
+        </button> */}
+        <AddCategoryDialog loadCategories={loadCategories}/>
       </div>
 
       <div className="flex flex-row border-t border-border px-10 h-svh">
@@ -79,15 +96,15 @@ export default function CategoryViewPage() {
             </div>
 
           <div className="border-t border-t-border">
-            <DNDView items={items} setItems={setItems} setActiveCategory={setActiveCategory} />
+            <DNDView items={categories} setItems={setCategories} setActiveCategory={setActiveCategory} />
           </div>
-          {!categories?.length ? (
+          {/* {!categories ||categories?.length  == 0 ?(
             <p>No categories available</p>
           ) : (
             categories.map((cat) => (
-              <div key={cat}>{cat}</div>
+              <div key={cat.id}>{cat.name}</div>
             ))
-          )}
+          )} */}
         </div>
 
         <div className="flex-1">

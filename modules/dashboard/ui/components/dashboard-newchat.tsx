@@ -30,7 +30,7 @@ export default function DashboardNewChat() {
             </div>
       </div>
       {/* input */}
-      <InputGroupCustom prompt={prompt} setPrompt={setPrompt} />
+      <InputGroupCustom prompt={prompt} setPrompt={setPrompt}/>
     </div>
   )
 }

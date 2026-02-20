@@ -21,8 +21,8 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, Layers2 } from "lucide-react"
 
 interface UserCategories {
-  name: string
   id: number
+  name: string
 }
 
 interface ItemsProps {
