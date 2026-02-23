@@ -103,6 +103,15 @@ export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
   return (
     <div className="grid w-full gap-6">
       <InputGroup>
+      {
+        pdfText === null && (
+          <div className='w-[90%] h-24 flex border border-dashed my-3.5 rounded-2xl justify-center text-muted-foreground items-center cursor-pointer'
+          onClick={handlePlusClick}
+          >
+        Upload the file 
+      </div>
+                )
+              }
         <TextareaAutosize
           data-slot="input-group-control"
           className="flex field-sizing-content min-h-16 w-full resize-none rounded-md bg-transparent px-3 py-2.5 text-base transition-[color,box-shadow] outline-none md:text-sm"
@@ -117,9 +126,9 @@ export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
           }}
         />
         <InputGroupAddon align="block-end">
-          <button type="button" onClick={handlePlusClick} className='border border-border rounded-md p-0.5 bg-muted text-muted-foreground'>
+          {/* <button type="button" onClick={handlePlusClick} className='border border-border rounded-md p-0.5 bg-muted text-muted-foreground'>
             <Plus />
-          </button>
+          </button> */}
           {
             fileName && (
 
