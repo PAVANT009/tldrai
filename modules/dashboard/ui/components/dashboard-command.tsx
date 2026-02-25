@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { CommandGroup, CommandInput, CommandItem, CommandList, CommandResponsiveDialog } from "@/components/ui/command"
 
-import { Dispatch, SetStateAction, useEffect, useEffectEvent, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 
 import { CommandEmpty } from "cmdk";
 interface Props {
@@ -9,40 +9,11 @@ interface Props {
     setOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-
- const pages = [
-    {
-        label: "Dashboard",
-        href: "/chat",
-    },
-    {
-        label: "AI Agent",
-        href: '/agent',
-    },
-    {
-        label: "Categories",
-        href: "/categories",
-    },
-    {
-        label: "Analytics",
-    },
-    {
-        label: "Notifications",
-        href: "/notifications",
-    },
-    {
-        label: "Upgrade",
-        href: "/upgrade",
-    },
-]
-
-
-// const pages = [
-//   { label: "Meetings", href: "/meetings" },
-//   { label: "Agents", href: "/agents" },
-//   { label: "Reports", href: "/reports" },
-//   { label: "Settings", href: "/settings" },
-// ];
+type ConversationCommandItem = {
+  id: string;
+  title: string;
+  lastMessage: string;
+};
 
 function fuzzyMatch(text: string, query: string) {
   const t = text.toLowerCase();
@@ -60,23 +31,54 @@ function fuzzyMatch(text: string, query: string) {
 export const DashboardCommand = ({ open, setOpen}: Props) => {
     const router = useRouter();
     const [search, setSearch] = useState("");
-    // const [subs,setSubs] = useState<Subscription[]>([])
+    const [conversations, setConversations] = useState<ConversationCommandItem[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
-//     useEffect(() => {
-//         const fetchSubs = async () => {
-//             const res = await fetch('/api/subscriptions');
-//             const data = await res.json();
-//             setSubs(data);
-//         }
-//         fetchSubs();
-//     }, []);
+    useEffect(() => {
+      if (!open) return;
 
-// const filteredPages = useMemo(() => {
-//     if (!search.trim()) return pages;
-//     return pages.filter((page) =>
-//       fuzzyMatch(page.label, search)
-//     );
-//   }, [search]);
+      const loadConversations = async () => {
+        setLoading(true);
+        setLoadError(null);
+
+        try {
+          const res = await fetch("/api/conversations", { cache: "no-store" });
+          const data = await res.json().catch(() => null);
+
+          if (!res.ok) {
+            setConversations([]);
+            setLoadError(typeof data?.error === "string" ? data.error : "Failed to load conversations");
+            return;
+          }
+
+          const list = Array.isArray(data?.conversations) ? data.conversations : [];
+          setConversations(
+            list.map((conversation: { id: string; title?: string; lastMessage?: string }) => ({
+              id: conversation.id,
+              title: conversation.title || "Untitled",
+              lastMessage: conversation.lastMessage || "",
+            }))
+          );
+        } catch {
+          setConversations([]);
+          setLoadError("Failed to load conversations");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadConversations();
+    }, [open]);
+
+    const filteredConversations = useMemo(() => {
+      const query = search.trim();
+      if (!query) return conversations;
+      return conversations.filter((conversation) =>
+        fuzzyMatch(conversation.title, query) ||
+        fuzzyMatch(conversation.lastMessage, query)
+      );
+    }, [conversations, search]);
 
 
     return (
@@ -86,49 +88,37 @@ export const DashboardCommand = ({ open, setOpen}: Props) => {
             shouldFilter={false}
         >
             <CommandInput
-                placeholder="Find a meeting or agent..."
+                placeholder="Search conversations..."
                 value={search}
                 onValueChange={(value) => setSearch(value)}
             />
             <CommandList >
-                 <CommandGroup heading="Pages">
-          {/* {filteredPages.length === 0 && (
-            <CommandEmpty>
-              <span className="text-muted-foreground text-sm">
-                No pages found
-              </span>
-            </CommandEmpty>
-          )}
-
-          {filteredPages.map((page) => (
-            <CommandItem
-              className="h-12"
-              key={page.href}
-              onSelect={() => {
-                router.push(page.href!);
-                setOpen(false);
-              }}
-            >
-              {page.label}
-            </CommandItem>
-          ))} */}
-        </CommandGroup>
-                <CommandGroup heading="agents">
+                <CommandGroup heading="Conversations">
+                  {loading ? (
+                    <CommandItem disabled>Loading conversations...</CommandItem>
+                  ) : loadError ? (
+                    <CommandItem disabled>{loadError}</CommandItem>
+                  ) : filteredConversations.length === 0 ? (
                     <CommandEmpty>
-                        <span className="text-muted-foreground text-sm">
-                            No agents found
-                        </span>
+                      <span className="text-muted-foreground text-sm">
+                        No conversations found
+                      </span>
                     </CommandEmpty>
-                    {/* {subs.map((sub) => (
-                        <CommandItem 
-                            onSelect={() => {router.push(`/agent/${sub.name}`)
-                            setOpen(false);
-                            }}
-                            key={sub.id}
-                        >
-                            {sub.name}
-                        </CommandItem>
-                    ))} */}
+                  ) : (
+                    filteredConversations.map((conversation) => (
+                      <CommandItem
+                        className="h-12"
+                        key={conversation.id}
+                        value={`${conversation.title} ${conversation.lastMessage}`}
+                        onSelect={() => {
+                          router.push(`/chat/${conversation.id}`);
+                          setOpen(false);
+                        }}
+                      >
+                        {conversation.title}
+                      </CommandItem>
+                    ))
+                  )}
                 </CommandGroup>
             </CommandList>
         </CommandResponsiveDialog>
