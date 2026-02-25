@@ -1,15 +1,16 @@
 "use client"
 
-import { useRef, ChangeEvent, useState, Dispatch, SetStateAction } from 'react'
+import { useRef, ChangeEvent, useState, Dispatch, SetStateAction, DragEvent } from 'react'
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
 } from "@/components/ui/input-group"
-import { Plus, X } from "lucide-react"
+import { X } from "lucide-react"
 import TextareaAutosize from "react-textarea-autosize"
 import { useRouter } from 'next/navigation'
 import {toast } from "sonner"
+import {Spinner} from "@/components/ui/spinner";
 
 interface InputGroupCustomProps{
   prompt: string
@@ -19,17 +20,43 @@ interface InputGroupCustomProps{
 export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
   const [fileName,setFileName] = useState<string|null>(null)
   const [pdfText,setPdfText] = useState<string | null>(null)
+  const [isDragActive, setIsDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  const getApiErrorMessage = (errorData: unknown, fallback: string) => {
+    if (!errorData || typeof errorData !== "object") return fallback
+    const payload = errorData as {
+      error?: unknown
+      code?: unknown
+      details?: unknown
+    }
+
+    const message = typeof payload.error === "string" ? payload.error : fallback
+    const code = typeof payload.code === "string" ? ` [${payload.code}]` : ""
+    const details =
+      payload.details && typeof payload.details === "object"
+        ? ` ${JSON.stringify(payload.details)}`
+        : ""
+
+    return `${message}${code}${details}`
+  }
 
   const handlePlusClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const processPdfFile = async (file: File | null | undefined) => {
     if (!file) return
+    const isPdfFile =
+      file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
+
+    if (!isPdfFile) {
+      toast.warning("Please upload a PDF file")
+      return
+    }
+
     setFileName(file.name);
     const formData = new FormData()
     formData.append("file", file)
@@ -47,7 +74,39 @@ export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
       return
     }
 
-    setPdfText(typeof data?.text === "string" ? data.text : null)
+    const parsedText = typeof data?.text === "string" ? data.text : ""
+    if (!parsedText.trim()) {
+      toast.warning("PDF parsed, but no extractable text was found")
+      setPdfText(null)
+      return
+    }
+
+    setPdfText(parsedText)
+  }
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    await processPdfFile(file)
+  }
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setIsDragActive(true)
+  }
+
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setIsDragActive(false)
+  }
+
+  const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setIsDragActive(false)
+    const file = event.dataTransfer.files?.[0]
+    await processPdfFile(file)
   }
 
   const handleSubmit = async () => {
@@ -57,11 +116,14 @@ export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
 
     const createConversationResponse = await fetch("/api/conversations", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: "New Chat" }),
     });
 
     if (!createConversationResponse.ok) {
+      const errorData = await createConversationResponse.json().catch(() => null);
+      toast.error(getApiErrorMessage(errorData, "Failed to create conversation"));
       setLoading(false);
       return;
     }
@@ -70,17 +132,21 @@ export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
     const conversationId = createConversationData.conversation?.id as string;
 
     if (!conversationId) {
+      toast.error("Conversation id missing in create response");
       setLoading(false);
       return;
     }
 
     const messageResponse = await fetch(`/api/conversations/${conversationId}/messages`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: prompt.trim(), role: "user", pdfText }),
     });
 
     if (!messageResponse.ok) {
+      const errorData = await messageResponse.json().catch(() => null);
+      toast.error(getApiErrorMessage(errorData, "Failed to send message"));
       setLoading(false);
       return;
     }
@@ -103,6 +169,20 @@ export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
   return (
     <div className="grid w-full gap-6">
       <InputGroup>
+      {
+        pdfText === null && (
+          <div className={`w-[90%] h-24 flex border border-dashed my-3.5 rounded-2xl justify-center text-muted-foreground items-center cursor-pointer transition-colors ${
+            isDragActive ? "border-primary bg-primary/10" : "border-primary"
+          }`}
+          onClick={handlePlusClick}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          >
+        {isDragActive ? "Drop PDF here" : "Upload the file (or drop PDF here)"}
+      </div>
+                )
+              }
         <TextareaAutosize
           data-slot="input-group-control"
           className="flex field-sizing-content min-h-16 w-full resize-none rounded-md bg-transparent px-3 py-2.5 text-base transition-[color,box-shadow] outline-none md:text-sm"
@@ -117,9 +197,9 @@ export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
           }}
         />
         <InputGroupAddon align="block-end">
-          <button type="button" onClick={handlePlusClick} className='border border-border rounded-md p-0.5 bg-muted text-muted-foreground'>
+          {/* <button type="button" onClick={handlePlusClick} className='border border-border rounded-md p-0.5 bg-muted text-muted-foreground'>
             <Plus />
-          </button>
+          </button> */}
           {
             fileName && (
 
@@ -139,7 +219,10 @@ export function InputGroupCustom({prompt, setPrompt} : InputGroupCustomProps) {
             disabled={!prompt.trim() || loading}
             onClick={handleSubmit}
           >
-            Submit
+            {
+              !loading ? "Submit" : <Spinner/>
+            }
+            
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>

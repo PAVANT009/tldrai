@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Dispatch, SetStateAction, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { ArrowUpDown, ExternalLink } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -13,64 +13,89 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: "UTC",
+})
+
 type ConversationRow = {
   id: string
   title: string
-  category: string
+  category: string | null
   lastMessage: string
   updatedAt: string
-  messages: number
+  messages: number | null
 }
 
-const rows: ConversationRow[] = [
-  {
-    id: "c1",
-    title: "GST filing for freelancers",
-    category: "Finance",
-    lastMessage: "Summarize this in simple bullet points",
-    updatedAt: "2026-02-15T17:45:00.000Z",
-    messages: 14,
-  },
-  {
-    id: "c2",
-    title: "Next.js auth middleware errors",
-    category: "Engineering",
-    lastMessage: "Why does this redirect loop happen?",
-    updatedAt: "2026-02-14T12:18:00.000Z",
-    messages: 26,
-  },
-  {
-    id: "c3",
-    title: "Research paper on transformers",
-    category: "Research",
-    lastMessage: "Give me limitations and future work",
-    updatedAt: "2026-02-13T07:30:00.000Z",
-    messages: 9,
-  },
-  {
-    id: "c4",
-    title: "UX notes from client meeting",
-    category: "Design",
-    lastMessage: "Convert these notes into action items",
-    updatedAt: "2026-02-11T21:10:00.000Z",
-    messages: 7,
-  },
-]
+type ApiConversation = {
+  id: string
+  title: string
+  lastMessage: string
+  updatedAt: string
+  messageCount?: number
+  category?: { id: string; name: string } | null
+}
 
 interface ConversationTablesProps {
     activeCategory: string
-    setActiveCategory: Dispatch<SetStateAction<string>>
-    
 }
 
-export default function ConversationTables({activeCategory,setActiveCategory}: ConversationTablesProps) {
+export default function ConversationTables({activeCategory}: ConversationTablesProps) {
   const [search, setSearch] = useState("")
   const [sortDesc, setSortDesc] = useState(true)
+  const [rows, setRows] = useState<ConversationRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  const categories = useMemo(() => {
-    const unique = Array.from(new Set(rows.map((row) => row.category)))
-    return ["All", ...unique]
+  const loadConversations = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
+
+    try {
+      const res = await fetch("/api/conversations", { cache: "no-store" })
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        setLoadError(
+          typeof data?.error === "string"
+            ? data.error
+            : "Failed to fetch conversations"
+        )
+        setRows([])
+        setLoading(false)
+        return
+      }
+
+      const conversations = Array.isArray(data?.conversations)
+        ? (data.conversations as ApiConversation[])
+        : []
+
+      setRows(
+        conversations.map((conversation) => ({
+          id: conversation.id,
+          title: conversation.title || "Untitled",
+          category: conversation.category?.name ?? null,
+          lastMessage: conversation.lastMessage || "",
+          updatedAt: conversation.updatedAt,
+          messages:
+            typeof conversation.messageCount === "number"
+              ? conversation.messageCount
+              : 0,
+        }))
+      )
+    } catch {
+      setLoadError("Failed to fetch conversations")
+      setRows([])
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    loadConversations()
+    const refresh = () => loadConversations()
+    window.addEventListener("conversations:refresh", refresh)
+    return () => window.removeEventListener("conversations:refresh", refresh)
+  }, [loadConversations])
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -90,7 +115,7 @@ export default function ConversationTables({activeCategory,setActiveCategory}: C
       const bTime = new Date(b.updatedAt).getTime()
       return sortDesc ? bTime - aTime : aTime - bTime
     })
-  }, [activeCategory, search, sortDesc])
+  }, [activeCategory, rows, search, sortDesc])
 
   return (
     <div className="flex h-full flex-col gap-3 p-4">
@@ -138,7 +163,19 @@ export default function ConversationTables({activeCategory,setActiveCategory}: C
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRows.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-20 text-center text-muted-foreground">
+                  Loading conversations...
+                </TableCell>
+              </TableRow>
+            ) : loadError ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-20 text-center text-destructive">
+                  {loadError}
+                </TableCell>
+              </TableRow>
+            ) : filteredRows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-20 text-center text-muted-foreground">
                   No conversations found
@@ -156,9 +193,9 @@ export default function ConversationTables({activeCategory,setActiveCategory}: C
                   <TableCell className="max-w-64 truncate text-muted-foreground">
                     {row.lastMessage}
                   </TableCell>
-                  <TableCell>{row.messages}</TableCell>
+                  <TableCell>{row.messages ?? "-"}</TableCell>
                   <TableCell>
-                    {new Date(row.updatedAt).toLocaleDateString()}
+                    {dateFormatter.format(new Date(row.updatedAt))}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="xs" asChild>

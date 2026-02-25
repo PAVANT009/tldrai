@@ -8,6 +8,29 @@ function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
 
+function conflict(message: string) {
+  return NextResponse.json({ error: message }, { status: 409 });
+}
+
+function normalizeCategoryName(value: unknown) {
+  if (typeof value !== "string") return { name: "", nameKey: "" };
+  const name = value.trim();
+  return { name, nameKey: name.toLowerCase() };
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function isDuplicateKeyError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === 11000
+  );
+}
+
 export async function GET() {
   try {
     await connectToDatabase();
@@ -33,18 +56,29 @@ export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
     const userId = await requireCurrentUserId();
-    // const userId = "123"
 
     const body = await request.json().catch(() => ({}));
-    const name = typeof body?.name === "string" ? body.name : "";
+    const { name, nameKey } = normalizeCategoryName(body?.name);
 
     if (!name) {
       return badRequest("Category name is required");
     }
 
+    const existingCategory = await Category.findOne({
+      userId,
+      $or: [
+        { nameKey },
+        { name: { $regex: `^${escapeRegex(name)}$`, $options: "i" } },
+      ],
+    }).lean();
+    if (existingCategory) {
+      return conflict("Category with this name already exists");
+    }
+
     const category = await Category.create({
       userId,
       name,
+      nameKey,
     });
 
     return NextResponse.json(
@@ -58,6 +92,9 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      return conflict("Category with this name already exists");
+    }
     return toApiErrorResponse(error);
   }
 }

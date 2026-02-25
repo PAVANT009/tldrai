@@ -17,7 +17,7 @@ export default async function AppLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-svh w-full flex-col">
+      <div className="flex h-svh w-full flex-col overflow-hidden">
         <PageNavbar />
         <div className="flex flex-1 overflow-hidden">
           <AppSidebar />

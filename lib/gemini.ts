@@ -40,7 +40,7 @@ export async function summarizePdfWithGemini(
 // Answer the question using the content as context if the user asks summary then give him summary.
 // `;
   const prompt = `
-  You must answer only from the PDF text below.
+  You should answer from the PDF text below.
 
   If user asks for a summary:
   - Return a short summary (3-8 bullet points).
@@ -48,6 +48,7 @@ export async function summarizePdfWithGemini(
   If user asks a question:
   - Answer directly from PDF content.
   - If not found, say: "I couldn't find this in the provided PDF."
+  - and proceeds to answer it with caution saying this is not from pdf
   - Add 1-3 short evidence lines from the PDF.
 
   PDF:

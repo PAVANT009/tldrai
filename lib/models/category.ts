@@ -10,6 +10,12 @@ const categorySchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
+    },
+    nameKey: {
+      type: String,
+      required: true,
+      trim: true,
     },
   },
   {
@@ -18,6 +24,22 @@ const categorySchema = new mongoose.Schema(
 );
 
 categorySchema.index({ userId: 1, updatedAt: -1 });
+categorySchema.index(
+  { userId: 1, nameKey: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      nameKey: { $type: "string" },
+    },
+  }
+);
+
+categorySchema.pre("validate", async function () {
+  if (typeof this.name === "string") {
+    this.name = this.name.trim();
+    this.nameKey = this.name.toLowerCase();
+  }
+});
 
 export type CategoryDocument = InferSchemaType<typeof categorySchema> & {
   _id: mongoose.Types.ObjectId;

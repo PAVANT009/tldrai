@@ -11,6 +11,49 @@ function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
 
+function conversationAccessError(
+  conversationId: string,
+  currentUserId: string,
+  ownerUserId: string | null
+) {
+  const includeDebug = process.env.NODE_ENV !== "production";
+
+  if (ownerUserId && ownerUserId !== currentUserId) {
+    return NextResponse.json(
+      {
+        error: "Conversation exists but belongs to a different user",
+        code: "CONVERSATION_FORBIDDEN",
+        ...(includeDebug
+          ? {
+              details: {
+                conversationId,
+                currentUserId,
+                ownerUserId,
+              },
+            }
+          : {}),
+      },
+      { status: 403 }
+    );
+  }
+
+  return NextResponse.json(
+    {
+      error: "Conversation not found",
+      code: "CONVERSATION_NOT_FOUND",
+      ...(includeDebug
+        ? {
+            details: {
+              conversationId,
+              currentUserId,
+            },
+          }
+        : {}),
+    },
+    { status: 404 }
+  );
+}
+
 export async function GET(
   _: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -30,7 +73,14 @@ export async function GET(
     }).lean();
 
     if (!conversation) {
-      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+      const existingConversation = await Conversation.findById(conversationId)
+        .select("userId")
+        .lean();
+      const ownerUserId =
+        existingConversation && typeof existingConversation.userId === "string"
+          ? existingConversation.userId
+          : null;
+      return conversationAccessError(conversationId, userId, ownerUserId);
     }
 
     const messages = await ChatMessage.find({ conversationId, userId })
@@ -73,7 +123,14 @@ export async function POST(
     });
 
     if (!conversation) {
-      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+      const existingConversation = await Conversation.findById(conversationId)
+        .select("userId")
+        .lean();
+      const ownerUserId =
+        existingConversation && typeof existingConversation.userId === "string"
+          ? existingConversation.userId
+          : null;
+      return conversationAccessError(conversationId, userId, ownerUserId);
     }
 
     const body = await request.json().catch(() => null);
@@ -84,6 +141,16 @@ export async function POST(
 
     if (!content) {
       return badRequest("Message content is required");
+    }
+
+    if (role === "user" && !requestPdfText && !conversation.pdfText) {
+      return NextResponse.json(
+        {
+          error: "Missing PDF text. Upload and parse a PDF before sending the first message.",
+          code: "PDF_TEXT_REQUIRED",
+        },
+        { status: 400 }
+      );
     }
 
     const message = await ChatMessage.create({

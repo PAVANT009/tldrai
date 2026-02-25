@@ -26,7 +26,7 @@ export const PageNavbar = () => {
   return (
     <>
       <DashboardCommand open={commandOpen} setOpen={setCommandOpen} />
-      <nav className="h-14 border-b bg-background px-4 dark:border-none">
+      <nav className="sticky top-0 z-40 h-14 shrink-0 border-b bg-background px-4 dark:border-none">
         <div className="mx-auto flex h-full w-full max-w-screen-2xl items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Button size="icon" variant="outline" onClick={toggleSidebar}>
