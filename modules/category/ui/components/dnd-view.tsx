@@ -19,9 +19,10 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, Layers2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface UserCategories {
-  id: number
+  id: string
   name: string
 }
 
@@ -29,10 +30,11 @@ interface ItemsProps {
   items: UserCategories[]
   setItems: Dispatch<SetStateAction<UserCategories[]>>
   setActiveCategory: Dispatch<SetStateAction<string>>
+  activeCategory?:string
 
 }
 
-function SortableItem({ id, name, setActiveCategory }: { id: number; name: string, setActiveCategory:Dispatch<SetStateAction<string>>  }) {
+function SortableItem({ id, name, setActiveCategory, isActive }: { id: string, name: string, setActiveCategory:Dispatch<SetStateAction<string>>, isActive: boolean}) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id })
 
@@ -46,9 +48,13 @@ function SortableItem({ id, name, setActiveCategory }: { id: number; name: strin
       ref={setNodeRef}
       style={style}
       onClick={() => setActiveCategory(name)}
-      className="mb-2 flex items-center justify-start border-b bg-card p-3 cursor-pointer"
+      className={cn(
+    "mb-2 flex items-center justify-start  p-3 cursor-pointer rounded-md",
+    isActive ? "bg-accent" : "bg-card"
+  )}
+      // className= {cn( "mb-2 flex items-center justify-start border-b bg-card p-3 cursor-pointer", isActive ? "bg-accent" : "bg-none" )}
     >
-
+      
       <button
         {...attributes}
         {...listeners}
@@ -64,7 +70,7 @@ function SortableItem({ id, name, setActiveCategory }: { id: number; name: strin
   )
 }
 
-export default function DNDView({ items, setItems, setActiveCategory }: ItemsProps) {
+export default function DNDView({ items, setItems, setActiveCategory, activeCategory }: ItemsProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -99,8 +105,9 @@ export default function DNDView({ items, setItems, setActiveCategory }: ItemsPro
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        {items.map((item) => (
+        {items.filter((item) => item.name !== "fav").map((item) => (
           <SortableItem
+            isActive={activeCategory === item.name}
             setActiveCategory={setActiveCategory}
             key={item.id}
             id={item.id}

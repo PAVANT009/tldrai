@@ -5,6 +5,8 @@ import { Bot, Send, User2 } from "lucide-react";
 import DashboardNavbar from "./dashboard-navbar";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import GeneratedAvatar from "@/components/generated-avatar";
 
 // type Message = {
 //   id: string;
@@ -18,7 +20,7 @@ type Message = {
   role: "user" | "assistant";
   content: string;
   createdAt?: string;
-  loading?: boolean; // ✅ added
+  loading?: boolean; 
 };
 
 
@@ -33,6 +35,25 @@ export default function DashBoardPage({ conversationId }: Props) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [category,setCategory] = useState(null);
+
+  const getApiErrorMessage = (errorData: unknown, fallback: string) => {
+    if (!errorData || typeof errorData !== "object") return fallback;
+    const payload = errorData as {
+      error?: unknown;
+      code?: unknown;
+      details?: unknown;
+    };
+
+    const message = typeof payload.error === "string" ? payload.error : fallback;
+    const code = typeof payload.code === "string" ? ` [${payload.code}]` : "";
+    const details =
+      payload.details && typeof payload.details === "object"
+        ? ` ${JSON.stringify(payload.details)}`
+        : "";
+
+    return `${message}${code}${details}`;
+  };
 
   const resizeTextarea = (el: HTMLTextAreaElement) => {
     el.style.height = "auto";
@@ -51,6 +72,7 @@ export default function DashBoardPage({ conversationId }: Props) {
       const data = await res.json();
       setMessages(data.messages ?? []);
       setTitle(data.conversation?.title || "New Chat");
+      setCategory(data.category || null)
       setLoading(false);
     };
 
@@ -121,14 +143,12 @@ const handleSendMessage = async () => {
     textareaRef.current.style.height = "40px";
   }
 
-  // ✅ optimistic user message
   const optimistic: Message = {
     id: `optimistic-${Date.now()}`,
     role: "user",
     content: pendingMessage,
   };
 
-  // ✅ fake assistant typing message
   const typingMessage: Message = {
     id: `typing-${Date.now()}`,
     role: "assistant",
@@ -140,6 +160,7 @@ const handleSendMessage = async () => {
 
   const res = await fetch(`/api/conversations/${conversationId}/messages`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -150,15 +171,12 @@ const handleSendMessage = async () => {
     const data = await res.json();
 
     setMessages((prev) => {
-      // ❌ remove typing message
       const withoutTyping = prev.filter((msg) => !msg.loading);
 
-      // ✅ replace optimistic user message
       const replacedUser = withoutTyping.map((msg) =>
         msg.id === optimistic.id ? data.message : msg
       );
 
-      // ✅ add real assistant message
       if (data.assistantMessage) {
         return [...replacedUser, data.assistantMessage];
       }
@@ -172,7 +190,8 @@ const handleSendMessage = async () => {
 
     window.dispatchEvent(new Event("conversations:refresh"));
   } else {
-    // remove optimistic + typing if failed
+    const errorData = await res.json().catch(() => null);
+    toast.error(getApiErrorMessage(errorData, "Failed to send message"));
     setMessages((prev) =>
       prev.filter(
         (msg) => msg.id !== optimistic.id && !msg.loading
@@ -193,7 +212,7 @@ const handleSendMessage = async () => {
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col p-4">
-      <DashboardNavbar title={title} />
+      <DashboardNavbar title={title} category={category}/>
 
       <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-y-auto">
         <div className="flex flex-1 flex-col gap-5 pb-6">
@@ -213,7 +232,7 @@ const handleSendMessage = async () => {
                     : "flex flex-row items-center gap-2 self-start"
                 }
               >
-                {chatMessage.role === "user" ? <User2 /> : <Bot />}
+                {chatMessage.role === "user" ?  <GeneratedAvatar size={34} className="rounded-md" /> : <Bot />}
                 {/* <span className="flex min-h-9 min-w-[15%] max-w-[70%] items-center rounded-md bg-accent/50 px-2 py-2.5 text-accent-foreground/80 text-sm">
                   {chatMessage.content}
                 </span> */}

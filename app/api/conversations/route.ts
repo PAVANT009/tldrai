@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Conversation } from "@/lib/models/conversation";
 import { Category } from "@/lib/models/category";
+import { ChatMessage } from "@/lib/models/chat-message";
 import { requireCurrentUserId } from "@/lib/server-auth";
 import { toApiErrorResponse } from "@/lib/api-error";
 
@@ -55,6 +56,18 @@ export async function GET() {
       .sort({ updatedAt: -1 })
       .lean();
 
+    const messageCounts = await ChatMessage.aggregate<{
+      _id: mongoose.Types.ObjectId;
+      count: number;
+    }>([
+      { $match: { userId } },
+      { $group: { _id: "$conversationId", count: { $sum: 1 } } },
+    ]);
+
+    const messageCountMap = new Map(
+      messageCounts.map((item) => [item._id.toString(), item.count])
+    );
+
     return NextResponse.json({
       conversations: conversations.map((c) => ({
         id: c._id.toString(),
@@ -63,6 +76,7 @@ export async function GET() {
         categoryId: getCategoryId(c.categoryId),
         category: mapCategory(c.categoryId),
         updatedAt: c.updatedAt,
+        messageCount: messageCountMap.get(c._id.toString()) ?? 0,
       })),
     });
   } catch (error) {
