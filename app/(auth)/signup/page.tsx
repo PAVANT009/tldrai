@@ -45,14 +45,14 @@ export default function SignUpPage() {
 
     setIsSubmitting(true);
 
-    const { error } = await authClient.signUp.email({
+    const result = await authClient.signUp.email({
       name: name.trim(),
       email: email.trim(),
       password,
     });
 
-    if (error) {
-      setErrorText(error.message || "Failed to create account.");
+    if (result && "error" in result && result.error) {
+      setErrorText(result.error.message || "Failed to create account.");
       setIsSubmitting(false);
       return;
     }
@@ -72,7 +72,7 @@ export default function SignUpPage() {
       errorCallbackURL: "/signup",
     });
 
-    if (result?.error) {
+    if (result && "error" in result && result.error) {
       setErrorText(result.error.message || "Google sign-in failed.");
       setIsGoogleLoading(false);
     }

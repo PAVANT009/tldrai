@@ -33,13 +33,13 @@ export default function SignInPage() {
 
     setIsSubmitting(true);
 
-    const { error } = await authClient.signIn.email({
+    const result = await authClient.signIn.email({
       email: email.trim(),
       password,
     });
 
-    if (error) {
-      setErrorText(error.message || "Invalid email or password.");
+    if (result && "error" in result && result.error) {
+      setErrorText(result.error.message || "Invalid email or password.");
       setIsSubmitting(false);
       return;
     }
@@ -59,7 +59,7 @@ export default function SignInPage() {
       errorCallbackURL: "/signin",
     });
 
-    if (result?.error) {
+    if (result && "error" in result && result.error) {
       setErrorText(result.error.message || "Google sign-in failed.");
       setIsGoogleLoading(false);
     }
