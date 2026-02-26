@@ -22,11 +22,30 @@ if (!global.betterAuthMongoClient) {
 const authSecret = process.env.BETTER_AUTH_SECRET;
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const maskSecret = (value?: string) => {
+  if (!value) return "missing";
+  if (value.length <= 8) return "*".repeat(value.length);
+  return `${value.slice(0, 4)}...${value.slice(-4)}`;
+};
+const isLocalhostUrl = (value: string) => {
+  try {
+    const parsedUrl = new URL(value);
+    return (
+      parsedUrl.hostname === "localhost" || parsedUrl.hostname === "127.0.0.1"
+    );
+  } catch {
+    return false;
+  }
+};
 const vercelUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : undefined;
+const configuredBaseURL =
+  process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;
 const baseURL =
-  process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? vercelUrl;
+  configuredBaseURL && vercelUrl && isLocalhostUrl(configuredBaseURL)
+    ? vercelUrl
+    : configuredBaseURL ?? vercelUrl;
 const envTrustedOrigins = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
   .split(",")
   .map((value) => value.trim())
@@ -43,6 +62,13 @@ const trustedOrigins = Array.from(
     ].filter((value): value is string => Boolean(value))
   )
 );
+
+if (process.env.NODE_ENV !== "production") {
+  console.log("[auth] Google OAuth env loaded", {
+    GOOGLE_CLIENT_ID: maskSecret(googleClientId),
+    GOOGLE_CLIENT_SECRET: maskSecret(googleClientSecret),
+  });
+}
 
 if (!authSecret) {
   throw new Error("Missing BETTER_AUTH_SECRET in environment variables");
