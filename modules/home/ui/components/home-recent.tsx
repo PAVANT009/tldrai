@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -18,6 +19,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
+import { MessageSquare } from "lucide-react";
 import type { HomeConversation } from "@/modules/home/ui/components/home-view";
 
 const PAGE_SIZE = 6;
@@ -38,6 +41,7 @@ function formatDate(dateValue: string) {
 
 export default function HomeRecent({ conversations }: HomeRecentProps) {
   const [page, setPage] = useState(1);
+  const router = useRouter();
 
   const totalPages = Math.max(1, Math.ceil(conversations.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -63,12 +67,13 @@ export default function HomeRecent({ conversations }: HomeRecentProps) {
             <TableHead>Chat Name</TableHead>
             <TableHead className="w-[130px]">Updated</TableHead>
             <TableHead className="text-right">Last Message</TableHead>
+            <TableHead className="w-[100px] text-center">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {visibleConversations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">
+              <TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
                 No recent conversations yet.
               </TableCell>
             </TableRow>
@@ -76,12 +81,29 @@ export default function HomeRecent({ conversations }: HomeRecentProps) {
             visibleConversations.map((conversation) => (
               <TableRow key={conversation.id}>
                 <TableCell className="font-medium">
-                  {conversation.category?.name || "Uncategorized"}
+                  <button
+                    type="button"
+                    onClick={() => router.push("/categories")}
+                    className="rounded px-1 py-0.5 text-left text-sm font-medium text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {conversation.category?.name || "Uncategorized"}
+                  </button>
                 </TableCell>
                 <TableCell className="max-w-[240px] truncate">{conversation.title}</TableCell>
                 <TableCell>{formatDate(conversation.updatedAt)}</TableCell>
                 <TableCell className="max-w-[260px] truncate text-right">
                   {conversation.lastMessage || "-"}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/chat/${conversation.id}`)}
+                    className="gap-1.5"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Open
+                  </Button>
                 </TableCell>
               </TableRow>
             ))
